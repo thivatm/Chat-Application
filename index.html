@@ -13,20 +13,50 @@
     <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
         crossorigin="anonymous"></script>
     <script src="/socket.io/socket.io.js"></script>
+    <!-- <link rel="stylesheet" href="main.css"/> -->
     <!-- <script src="main.js"></script> -->
     <style>
         body {
             margin: 50px;
         }
+        #chatArea{
+            display: none;
+        }
+        #userForm{
+            width: 50%;
+            margin: auto;
+            
+        }
+   
     </style>
 </head>
 
 <body>
     <div class="container">
+        <div id="userFormArea" class="jumbotron">
+            
+            <h1 class="display-3">Login Here</h1>
+            <hr class="my-4">
+
+            <div class="container">
+            <form id="userForm">
+                <div class="form-group">
+                    <label>User Name</label>
+                    <input class="form-control" id="userName"/>
+                    </br>
+                    <input type="submit" class="btn btn-danger" value="Login"/>
+                </div>
+            </form>
+            </div>
+            
+        </div>
+
+
+        <div id="chatArea">
         <div class="row">
             <div class="col-md-8">
-                <div class="chat" id="chat"></div>
-
+                <div id="chat" class="jumbotron">     
+                </div>
                 <form id="messageForm">
                     <div class="form-group">
                         <label>Enter Message</label>
@@ -45,13 +75,23 @@
                 </div>
             </div>
         </div>
+        </div>
     </div>
+
+
+
 <script>
     $(function(){
     var socket = io.connect();
     var $msgForm = $('#messageForm');
     var $msg = $('#message');
     var $chat = $('#chat');
+    var $users = $('#users');
+
+    var $messageArea = $('#chatArea')
+    var $userForm = $('#userForm');
+    var $userFormArea = $('#userFormArea');
+    var $userName = $('#userName');
 
     $msgForm.submit(function(e){
         e.preventDefault();
@@ -60,9 +100,27 @@
     });
 
     socket.on('new message', function(data){
-        $chat.append('<div class="card">' + data.msg + '</div>');
+        $chat.append('<div class="alert-dismissible alert-light text-muted"><strong class="text-muted">'+ data.user +'</strong><p class="lead">' + data.msg + '</p></div>');
     });
 
+    $userForm.submit(function(e){
+        e.preventDefault();
+        socket.emit('new user', $userName.val(), function(data){
+            if(data){
+                $userFormArea.hide();
+                $messageArea.show();
+            }
+        });
+        $userName.val('');
+    });
+
+    socket.on('get users', function(data){
+        var onlineList = '';
+        for ( i = 0; i < data.length; i++){
+            onlineList += '<li class="list-group-item d-flex justify-content-between align-items-center">'+ data[i] +'</li>'
+        }
+        $users.html(onlineList);
+    });
     
 });
 
